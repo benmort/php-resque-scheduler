@@ -40,6 +40,7 @@ class ResqueScheduler_Worker
 		$this->updateProcLine('Starting');
 		
 		while (true) {
+			$this->log('work');
 			$this->handleDelayedItems();
 			$this->sleep();
 		}
@@ -56,8 +57,30 @@ class ResqueScheduler_Worker
 	public function handleDelayedItems($timestamp = null)
 	{
 		while (($timestamp = ResqueScheduler::nextDelayedTimestamp($timestamp)) !== false) {
-			$this->updateProcLine('Processing Delayed Items');
-			$this->enqueueDelayedItemsForTimestamp($timestamp);
+			// custom conditional added as to switch between global status behaviours
+			$globalStatus = $this->getResqueRedis()->get('config:globalStatus');
+			if ($globalStatus) {
+				//enqueue job
+				$this->updateProcLine('Processing Delayed Items');
+				$this->enqueueDelayedItemsForTimestamp($timestamp);		
+			} else {
+				//further delay job
+				$this->updateProcLine('Skipping Delayed Items');
+				$this->skipDelayedItemsForTimestamp($timestamp);
+			}
+		}
+	}
+	
+	/**
+	 * custom function fallback when inactive further delays the jobs
+	 *
+	 * @param DateTime|int $timestamp Search for any items up to this timestamp to schedule.
+	 */
+	public function skipDelayedItemsForTimestamp($timestamp)
+	{
+		$item = null;
+		while ($item = ResqueScheduler::nextItemForTimestamp($timestamp)) {
+			$this->log('skipping ' . $item['class'] . ' in ' . $item['queue'] .' [delayed]');
 		}
 	}
 	
@@ -124,4 +147,18 @@ class ResqueScheduler_Worker
 			fwrite(STDOUT, "** [" . strftime('%T %Y-%m-%d') . "] " . $message . "\n");
 		}
 	}
+
+    public function getResqueRedis() {
+        /*$redisConfig = $this->container->get('bcc_resque.resque')->getRedisConfiguration();
+        $redis = Resque::redis(
+            $redisConfig['host'],
+            $redisConfig['database']
+        );*/
+        $redis = Resque::redis(
+            'localhost',
+            1
+        );
+        $redis->prefix('availability-service');
+        return $redis;
+    }
 }
