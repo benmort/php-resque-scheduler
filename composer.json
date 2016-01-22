@@ -14,7 +14,11 @@
 		}
 	},
 	"repositories": [
-		{ "type": "git", "url": "https://github.com/benmort/php-resque" }
+        {
+          "type": "vcs",
+          "url": "https://github.com/benmort/php-resque",
+          "no-api": true
+        }
 	],
 	"require": {
 		"benmort/php-resque": "dev-master"
