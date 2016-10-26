@@ -16,7 +16,7 @@ class ResqueScheduler_Worker
 	/**
 	 * @var int Current log level of this worker.
 	 */
-	public $logLevel = 0;
+	public $logLevel = 2;
 	
 	/**
 	 * @var int Interval to sleep for between checking schedules.
@@ -142,21 +142,16 @@ class ResqueScheduler_Worker
 	{
 		if($this->logLevel == self::LOG_NORMAL) {
 			fwrite(STDOUT, "*** " . $message . "\n");
-		}
-		else if($this->logLevel == self::LOG_VERBOSE) {
+		} else if($this->logLevel == self::LOG_VERBOSE) {
 			fwrite(STDOUT, "** [" . strftime('%T %Y-%m-%d') . "] " . $message . "\n");
 		}
 	}
 
     public function getResqueRedis() {
-        /*$redisConfig = $this->container->get('bcc_resque.resque')->getRedisConfiguration();
+        $redisConfig = $this->container->get('bcc_resque.resque')->getRedisConfiguration();
         $redis = Resque::redis(
             $redisConfig['host'],
             $redisConfig['database']
-        );*/
-        $redis = Resque::redis(
-            'localhost',
-            1
         );
         $redis->prefix('availability-service');
         return $redis;
