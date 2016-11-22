@@ -58,7 +58,8 @@ class ResqueScheduler_Worker
 	{
 		while (($timestamp = ResqueScheduler::nextDelayedTimestamp($timestamp)) !== false) {
 			// custom conditional added as to switch between global status behaviours
-			$globalStatus = $this->getResqueRedis()->get('config:globalStatus');
+			//$globalStatus = $this->getResqueRedis()->get('config:globalStatus');
+			$globalStatus = true;
 			if ($globalStatus) {
 				//enqueue job
 				$this->updateProcLine('Processing Delayed Items');
@@ -147,7 +148,7 @@ class ResqueScheduler_Worker
 		}
 	}
 
-    public function getResqueRedis() {
+    /*public function getResqueRedis() {
         $redisConfig = $this->container->get('bcc_resque.resque')->getRedisConfiguration();
         $redis = Resque::redis(
             $redisConfig['host'],
@@ -155,5 +156,5 @@ class ResqueScheduler_Worker
         );
         $redis->prefix('availability-service');
         return $redis;
-    }
+    }*/
 }
